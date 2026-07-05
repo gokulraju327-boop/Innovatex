@@ -2,10 +2,10 @@ from groq import Groq
 import json
 import os
 
-API_KEY = "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"  # paste your key here
+API_KEY = os.getenv("GROQ_API_KEY")
 
 client = Groq(api_key=API_KEY)
-MODEL = "openai/gpt-oss-120b"  # free model, fast and capable
+MODEL = "llama3-8b-8192"
 
 
 def get_ai_response(prompt):
@@ -51,7 +51,7 @@ Return ONLY valid JSON, no extra text, no markdown:
         if text.startswith("```"):
             text = text.replace("```json", "").replace("```", "").strip()
 
-        json.loads(text)  # validate JSON
+        json.loads(text)
         return text
 
     except Exception as e:
@@ -119,11 +119,9 @@ Generate a professional report containing:
 
     except Exception as e:
         return f"Report Error:\n{str(e)}"
-    
+
+
 def get_ai_mentor_response(messages: list):
-    """
-    messages = [{"role": "user"/"assistant", "content": "..."}]
-    """
     try:
         response = client.chat.completions.create(
             model=MODEL,
