@@ -2,3 +2,4 @@ streamlit
 groq
 reportlab
 streamlit-option-menu
+python-dotenv

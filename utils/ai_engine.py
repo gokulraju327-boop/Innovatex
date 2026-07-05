@@ -1,6 +1,9 @@
 from groq import Groq
 import json
 import os
+from dotenv import load_dotenv
+
+load_dotenv()  # reads .env file locally
 
 API_KEY = os.getenv("GROQ_API_KEY")
 
