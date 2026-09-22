@@ -7,81 +7,249 @@ def show_analysis():
 
     st.title("📊 AI Evaluation Report")
 
-    if "project" not in st.session_state:
-        st.warning("⚠️ Please evaluate a project first.")
+    # ==================================================
+    # ACTIVE PROJECT ONLY
+    # ==================================================
+
+    project = st.session_state.get("project")
+
+    # --------------------------------------------------
+    # No Active Project
+    # --------------------------------------------------
+
+    if project is None:
+
+        st.warning("🆕 No active project.")
+
+        st.info(
+            "Please go to 💡 Idea Evaluation, "
+            "create a project and click 🚀 Analyze My Idea."
+        )
+
         return
 
-    project = st.session_state["project"]
+    # ==================================================
+    # ACTIVE PROJECT
+    # ==================================================
 
-    # -----------------------------
-    # AI SCORES (REAL AI)
-    # -----------------------------
-    raw = get_ai_scores(project)
+    st.success(
+        f"🚀 Evaluating: {project['title']}"
+    )
+
+    # ==================================================
+    # AI EVALUATION
+    # ==================================================
+
+    with st.spinner(
+        "🤖 AI is evaluating your project..."
+    ):
+
+        raw = get_ai_scores(project)
+
+    # ==================================================
+    # PARSE AI RESPONSE
+    # ==================================================
 
     try:
+
         start = raw.find("{")
         end = raw.rfind("}") + 1
+
         clean_json = raw[start:end]
 
         scores = json.loads(clean_json)
 
     except Exception:
-        st.error("⚠️ AI returned invalid format. Please try again.")
-        st.stop()
 
-    # -----------------------------
+        st.error(
+            "⚠️ AI returned an invalid response. "
+            "Please try again."
+        )
+
+        return
+
+    # ==================================================
+    # SAVE LATEST SCORE
+    # ==================================================
+
+    st.session_state["latest_score"] = scores["overall"]
+
+    # ==================================================
     # PROJECT SUMMARY
-    # -----------------------------
+    # ==================================================
+
     st.subheader("📌 Project Summary")
-
-    st.write("**Project Title:**", project["title"])
-    st.write("**Domain:**", project["domain"])
-    st.write("**Team Size:**", project["team_size"])
-    st.write("**Skill Level:**", project["skill"])
-
-    if project["tech_stack"]:
-        st.write("**Tech Stack:**", ", ".join(project["tech_stack"]))
-    else:
-        st.write("**Tech Stack:** Not specified")
-
-    st.divider()
-
-    # -----------------------------
-    # AI EVALUATION
-    # -----------------------------
-    st.subheader("🤖 AI Evaluation")
 
     col1, col2 = st.columns(2)
 
     with col1:
-        st.metric("💡 Innovation", f"{scores['innovation']}/100")
-        st.metric("📈 Market Potential", f"{scores['market']}/100")
+
+        st.write(
+            "**Project Title:**",
+            project["title"]
+        )
+
+        st.write(
+            "**Domain:**",
+            project["domain"]
+        )
+
+        st.write(
+            "**Team Size:**",
+            project["team_size"]
+        )
+
+        st.write(
+            "**Skill Level:**",
+            project["skill"]
+        )
 
     with col2:
-        st.metric("⚙️ Feasibility", f"{scores['feasibility']}/100")
-        st.metric("🏆 Overall Score", f"{scores['overall']}/100")
+
+        st.write(
+            "**Duration:**",
+            project["duration"]
+        )
+
+        st.write(
+            "**Target Users:**",
+            project["target_users"]
+        )
+
+        if project["tech_stack"]:
+
+            st.write(
+                "**Tech Stack:**",
+                ", ".join(project["tech_stack"])
+            )
+
+        else:
+
+            st.write(
+                "**Tech Stack:**",
+                "Not specified"
+            )
 
     st.divider()
 
-    # -----------------------------
-    # STATIC INSIGHTS (for now)
-    # -----------------------------
+    # ==================================================
+    # AI SCORE
+    # ==================================================
+
+    st.subheader("🏆 AI Score")
+
+    c1, c2, c3, c4 = st.columns(4)
+
+    with c1:
+
+        st.metric(
+            "💡 Innovation",
+            f"{scores['innovation']}/100"
+        )
+
+    with c2:
+
+        st.metric(
+            "⚙️ Feasibility",
+            f"{scores['feasibility']}/100"
+        )
+
+    with c3:
+
+        st.metric(
+            "📈 Market Potential",
+            f"{scores['market']}/100"
+        )
+
+    with c4:
+
+        st.metric(
+            "🏆 Overall Score",
+            f"{scores['overall']}/100"
+        )
+
+    st.divider()
+
+    # ==================================================
+    # STRENGTHS
+    # ==================================================
+
     st.subheader("✅ Strengths")
 
-    st.success("""
-• AI-generated evaluation based on your idea
+    for strength in scores.get(
+        "strengths",
+        []
+    ):
 
-• Identifies real-world potential
+        st.success(
+            f"✔️ {strength}"
+        )
 
-• Assesses technical feasibility
-""")
+    # ==================================================
+    # WEAKNESSES
+    # ==================================================
 
-    st.subheader("⚠️ Suggestions")
+    st.subheader("⚠️ Weaknesses")
 
-    st.info("""
-• Improve problem explanation
+    for weakness in scores.get(
+        "weaknesses",
+        []
+    ):
 
-• Add implementation timeline
+        st.warning(
+            f"⚠️ {weakness}"
+        )
 
-• Define scalability plan
-""")
+    # ==================================================
+    # SUGGESTIONS
+    # ==================================================
+
+    st.subheader(
+        "💡 AI Improvement Suggestions"
+    )
+
+    for suggestion in scores.get(
+        "suggestions",
+        []
+    ):
+
+        st.info(
+            f"💡 {suggestion}"
+        )
+
+    # ==================================================
+    # JUDGE FEEDBACK
+    # ==================================================
+
+    st.subheader(
+        "👨‍⚖️ Hackathon Judge Feedback"
+    )
+
+    st.markdown(
+        f"""
+<div style="
+    background:#F8FAFC;
+    padding:20px;
+    border-radius:15px;
+    border-left:6px solid #2563EB;
+    margin-top:10px;
+">
+<b>AI Judge:</b><br><br>
+{scores.get(
+    "judge_feedback",
+    "No feedback available."
+)}
+</div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    # ==================================================
+    # FOOTER
+    # ==================================================
+
+    st.divider()
+
+    st.caption(
+        "🤖 Evaluation generated by InnovateX AI."
+    )

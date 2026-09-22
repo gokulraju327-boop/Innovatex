@@ -3,45 +3,194 @@ from utils.ai_engine import get_ai_mentor_response
 
 
 def show_ai_mentor():
+
     st.title("🤖 AI Mentor")
 
-    # Initialize chat history in session
+    # ==================================================
+    # ACTIVE PROJECT ONLY
+    # ==================================================
+
+    project = st.session_state.get("project")
+
+    # ==================================================
+    # NO ACTIVE PROJECT
+    # ==================================================
+
+    if project is None:
+
+        st.warning("🆕 No active project.")
+
+        st.info(
+            "Please go to 💡 Idea Evaluation, "
+            "create a project and click 🚀 Analyze My Idea."
+        )
+
+    else:
+
+        st.success(
+            f"🚀 Mentoring project: {project['title']}"
+        )
+
+    # ==================================================
+    # CHAT HISTORY
+    # ==================================================
+
     if "mentor_messages" not in st.session_state:
-        st.session_state.mentor_messages = []
 
-    # Display full chat history
-    for msg in st.session_state.mentor_messages:
+        st.session_state["mentor_messages"] = []
+
+    # ==================================================
+    # DISPLAY PREVIOUS CHAT
+    # ==================================================
+
+    for msg in st.session_state["mentor_messages"]:
+
         with st.chat_message(msg["role"]):
-            st.markdown(msg["content"])
 
-    # Chat input at bottom
-    user_input = st.chat_input("Ask your AI Mentor anything...")
+            st.markdown(
+                msg["content"]
+            )
+
+    # ==================================================
+    # CHAT INPUT
+    # ==================================================
+
+    user_input = st.chat_input(
+        "Ask your AI Mentor anything..."
+    )
 
     if user_input:
-        # Show user message
+
+        # --------------------------------------------------
+        # USER MESSAGE
+        # --------------------------------------------------
+
         with st.chat_message("user"):
+
             st.markdown(user_input)
 
-        # Add to history
-        st.session_state.mentor_messages.append({
-            "role": "user",
-            "content": user_input
-        })
+        st.session_state[
+            "mentor_messages"
+        ].append(
+            {
+                "role": "user",
+                "content": user_input
+            }
+        )
 
-        # Get AI response with full history
+        # --------------------------------------------------
+        # AI MESSAGES
+        # --------------------------------------------------
+
+        messages_for_ai = []
+
+        # --------------------------------------------------
+        # PROJECT CONTEXT
+        # --------------------------------------------------
+
+        if project:
+
+            project_context = f"""
+You are the AI Mentor inside InnovateX.
+
+You are currently mentoring this project:
+
+Project Title: {project['title']}
+Domain: {project['domain']}
+Description: {project['description']}
+Problem Statement: {project['problem']}
+Target Users: {project['target_users']}
+Team Size: {project['team_size']}
+Skill Level: {project['skill']}
+Hackathon Duration: {project['duration']}
+Tech Stack: {project['tech_stack']}
+
+Use these details to give personalized,
+practical and realistic advice.
+
+Do not ask the user to repeat project details
+that are already provided above.
+
+Focus on solutions that match their team size,
+skill level, hackathon duration and technology stack.
+"""
+
+            messages_for_ai.append(
+                {
+                    "role": "system",
+                    "content": project_context
+                }
+            )
+
+        else:
+
+            messages_for_ai.append(
+                {
+                    "role": "system",
+                    "content": """
+You are the AI Mentor inside InnovateX.
+
+There is currently no active project.
+
+Give general hackathon and project-building
+guidance until the user creates a project.
+
+If project-specific information is required,
+tell the user to create a project in
+Idea Evaluation first.
+"""
+                }
+            )
+
+        # --------------------------------------------------
+        # ADD CHAT HISTORY
+        # --------------------------------------------------
+
+        messages_for_ai.extend(
+            st.session_state["mentor_messages"]
+        )
+
+        # --------------------------------------------------
+        # AI RESPONSE
+        # --------------------------------------------------
+
         with st.chat_message("assistant"):
-            with st.spinner("Thinking..."):
-                reply = get_ai_mentor_response(st.session_state.mentor_messages)
+
+            with st.spinner(
+                "🤖 AI Mentor is thinking..."
+            ):
+
+                reply = get_ai_mentor_response(
+                    messages_for_ai
+                )
+
             st.markdown(reply)
 
-        # Save assistant reply to history
-        st.session_state.mentor_messages.append({
-            "role": "assistant",
-            "content": reply
-        })
+        # --------------------------------------------------
+        # SAVE AI RESPONSE
+        # --------------------------------------------------
 
-    # Button to clear chat
-    if st.session_state.mentor_messages:
-        if st.button("🗑️ Clear Chat"):
-            st.session_state.mentor_messages = []
+        st.session_state[
+            "mentor_messages"
+        ].append(
+            {
+                "role": "assistant",
+                "content": reply
+            }
+        )
+
+    # ==================================================
+    # CLEAR CHAT
+    # ==================================================
+
+    if st.session_state["mentor_messages"]:
+
+        if st.button(
+            "🗑️ Clear Chat"
+        ):
+
+            st.session_state[
+                "mentor_messages"
+            ] = []
+
             st.rerun()

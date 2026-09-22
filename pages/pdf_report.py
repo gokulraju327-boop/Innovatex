@@ -11,20 +11,29 @@ import json
 def clean_for_pdf(text):
     # Remove markdown headers
     text = re.sub(r'#{1,6}\s*', '', text)
+
     # Remove bold/italic markers
     text = re.sub(r'\*\*(.*?)\*\*', r'\1', text)
     text = re.sub(r'\*(.*?)\*', r'\1', text)
+
     # Remove horizontal rules
     text = re.sub(r'---+', '', text)
-    # Remove table rows (lines with pipes)
+
+    # Remove table rows
     text = re.sub(r'\|.*', '', text)
+
     # Replace unicode stars/bullets with dash
     text = re.sub(r'[★☆✓•·]', '-', text)
-    # Remove non-ASCII characters to avoid ReportLab crashes
+
+    # Remove non-ASCII characters
     text = re.sub(r'[^\x00-\x7F]+', '', text)
-    # Split into lines, strip whitespace, drop empty lines
+
+    # Split into lines
     lines = [line.strip() for line in text.split('\n')]
+
+    # Remove empty lines
     lines = [line for line in lines if line]
+
     return lines
 
 
@@ -32,59 +41,291 @@ def show_pdf_report():
 
     st.title("📄 AI PDF Report Generator")
 
-    if "project" not in st.session_state:
-        st.warning("⚠️ Please evaluate a project first.")
+    # --------------------------------------------------
+    # Get Active Project
+    # --------------------------------------------------
+
+    project = st.session_state.get("project")
+
+    # --------------------------------------------------
+    # New Project Mode
+    # --------------------------------------------------
+
+    if project is None and st.session_state.get(
+        "new_project_mode",
+        False
+    ):
+
+        st.warning("🆕 No active project yet.")
+
+        st.info(
+            "Please complete your new project details in "
+            "💡 Idea Evaluation and click 🚀 Analyze My Idea."
+        )
+
         return
 
-    project = st.session_state["project"]
+    # --------------------------------------------------
+    # No Project
+    # --------------------------------------------------
+
+    if project is None:
+
+        st.warning(
+            "⚠️ Please evaluate a project first."
+        )
+
+        st.info(
+            "Go to 💡 Idea Evaluation and create a project."
+        )
+
+        return
+
+    # --------------------------------------------------
+    # Active Project
+    # --------------------------------------------------
+
+    st.success(
+        f"📄 Report for: {project['title']}"
+    )
+
+    st.subheader(
+        f"🚀 {project['title']}"
+    )
+
+    # --------------------------------------------------
+    # Project Information
+    # --------------------------------------------------
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+
+        st.write(
+            "**Domain:**",
+            project["domain"]
+        )
+
+        st.write(
+            "**Team Size:**",
+            project["team_size"]
+        )
+
+        st.write(
+            "**Skill Level:**",
+            project["skill"]
+        )
+
+    with col2:
+
+        st.write(
+            "**Duration:**",
+            project["duration"]
+        )
+
+        st.write(
+            "**Target Users:**",
+            project["target_users"]
+        )
+
+        if project["tech_stack"]:
+
+            st.write(
+                "**Tech Stack:**",
+                ", ".join(project["tech_stack"])
+            )
+
+        else:
+
+            st.write(
+                "**Tech Stack:**",
+                "Not specified"
+            )
+
+    # --------------------------------------------------
+    # Generate PDF
+    # --------------------------------------------------
+
+    st.divider()
 
     if st.button("📥 Generate AI Report PDF"):
 
-        # ---------------- AI DATA ----------------
-        with st.spinner("Generating AI report..."):
+        # --------------------------------------------------
+        # Generate AI Data
+        # --------------------------------------------------
+
+        with st.spinner(
+            "🤖 Generating AI report..."
+        ):
+
             raw_scores = get_ai_scores(project)
 
             try:
-                scores = json.loads(raw_scores[raw_scores.find("{"):raw_scores.rfind("}") + 1])
+
+                start = raw_scores.find("{")
+                end = raw_scores.rfind("}") + 1
+
+                clean_json = raw_scores[start:end]
+
+                scores = json.loads(clean_json)
+
             except Exception:
-                st.error("Score parsing failed")
+
+                st.error(
+                    "⚠️ Score parsing failed."
+                )
+
                 return
 
             roadmap = get_ai_roadmap(project)
-            report_text = get_ai_report(project, scores, roadmap)
 
-        # ---------------- PDF CREATION ----------------
+            report_text = get_ai_report(
+                project,
+                scores,
+                roadmap
+            )
+
+        # --------------------------------------------------
+        # PDF Creation
+        # --------------------------------------------------
+
         file_name = "InnovateX_AI_Report.pdf"
-        doc = SimpleDocTemplate(file_name, pagesize=A4)
+
+        doc = SimpleDocTemplate(
+            file_name,
+            pagesize=A4
+        )
+
         styles = getSampleStyleSheet()
 
         story = []
 
-        story.append(Paragraph("InnovateX AI Report", styles["Title"]))
-        story.append(Spacer(1, 12))
+        # --------------------------------------------------
+        # PDF Header
+        # --------------------------------------------------
 
-        story.append(Paragraph(f"<b>Title:</b> {project['title']}", styles["Normal"]))
-        story.append(Paragraph(f"<b>Domain:</b> {project['domain']}", styles["Normal"]))
-        story.append(Spacer(1, 12))
+        story.append(
+            Paragraph(
+                "InnovateX AI Report",
+                styles["Title"]
+            )
+        )
 
-        story.append(Paragraph("<b>AI Generated Report:</b>", styles["Heading2"]))
-        story.append(Spacer(1, 8))
+        story.append(
+            Spacer(1, 12)
+        )
 
-        # Add each cleaned line as its own Paragraph
+        # --------------------------------------------------
+        # Project Details
+        # --------------------------------------------------
+
+        story.append(
+            Paragraph(
+                f"<b>Title:</b> {project['title']}",
+                styles["Normal"]
+            )
+        )
+
+        story.append(
+            Paragraph(
+                f"<b>Domain:</b> {project['domain']}",
+                styles["Normal"]
+            )
+        )
+
+        story.append(
+            Paragraph(
+                f"<b>Team Size:</b> {project['team_size']}",
+                styles["Normal"]
+            )
+        )
+
+        story.append(
+            Paragraph(
+                f"<b>Skill Level:</b> {project['skill']}",
+                styles["Normal"]
+            )
+        )
+
+        story.append(
+            Paragraph(
+                f"<b>Duration:</b> {project['duration']}",
+                styles["Normal"]
+            )
+        )
+
+        story.append(
+            Spacer(1, 12)
+        )
+
+        # --------------------------------------------------
+        # AI Report
+        # --------------------------------------------------
+
+        story.append(
+            Paragraph(
+                "<b>AI Generated Report:</b>",
+                styles["Heading2"]
+            )
+        )
+
+        story.append(
+            Spacer(1, 8)
+        )
+
+        # --------------------------------------------------
+        # Add Report Lines
+        # --------------------------------------------------
+
         for line in clean_for_pdf(report_text):
+
             try:
-                story.append(Paragraph(line, styles["Normal"]))
-                story.append(Spacer(1, 4))
+
+                story.append(
+                    Paragraph(
+                        line,
+                        styles["Normal"]
+                    )
+                )
+
+                story.append(
+                    Spacer(1, 4)
+                )
+
             except Exception:
-                # Last resort: strip everything except basic ASCII
-                safe = re.sub(r'[^\x20-\x7E]', '', line)
+
+                # Last resort
+                safe = re.sub(
+                    r'[^\x20-\x7E]',
+                    '',
+                    line
+                )
+
                 if safe:
-                    story.append(Paragraph(safe, styles["Normal"]))
-                    story.append(Spacer(1, 4))
+
+                    story.append(
+                        Paragraph(
+                            safe,
+                            styles["Normal"]
+                        )
+                    )
+
+                    story.append(
+                        Spacer(1, 4)
+                    )
+
+        # --------------------------------------------------
+        # Build PDF
+        # --------------------------------------------------
 
         doc.build(story)
 
+        # --------------------------------------------------
+        # Download Button
+        # --------------------------------------------------
+
         with open(file_name, "rb") as f:
+
             st.download_button(
                 "⬇️ Download AI Report PDF",
                 f,
@@ -92,4 +333,6 @@ def show_pdf_report():
                 mime="application/pdf"
             )
 
-        st.success("✅ AI PDF Report Generated!")
+        st.success(
+            "✅ AI PDF Report Generated!"
+        )

@@ -1,0 +1,11 @@
+.env
+venv/
+__pycache__/
+*.pyc
+*.db
+*.sqlite
+*.sqlite3
+.streamlit/secrets.toml
+status.txt
+git_status.txt
+git_status2.txt
