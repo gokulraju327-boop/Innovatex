@@ -1,13 +1,33 @@
+import streamlit as st
 from groq import Groq
 import json
 import os
 from dotenv import load_dotenv
 
+
+# Load local .env file
 load_dotenv()
 
-API_KEY = os.getenv("GROQ_API_KEY")
 
-client = Groq(api_key=API_KEY)
+# --------------------------------
+# GROQ API KEY
+# --------------------------------
+API_KEY = None
+
+# Streamlit Cloud Secrets
+try:
+    API_KEY = st.secrets["GROQ_API_KEY"]
+except Exception:
+    pass
+
+# Local .env fallback
+if not API_KEY:
+    API_KEY = os.getenv("GROQ_API_KEY")
+
+
+# Create Groq client only when API key exists
+client = Groq(api_key=API_KEY) if API_KEY else None
+
 
 MODEL = "openai/gpt-oss-20b"
 
@@ -16,7 +36,12 @@ MODEL = "openai/gpt-oss-20b"
 # GENERAL AI RESPONSE
 # -----------------------------
 def get_ai_response(prompt):
+
+    if client is None:
+        return "AI Error: GROQ_API_KEY is not configured."
+
     try:
+
         response = client.chat.completions.create(
             model=MODEL,
             messages=[
@@ -28,6 +53,7 @@ def get_ai_response(prompt):
         return response.choices[0].message.content
 
     except Exception as e:
+
         return f"AI Error: {str(e)}"
 
 
@@ -95,6 +121,30 @@ JSON format:
 
     "judge_feedback": "Short professional feedback from a hackathon judge."
 }}"""
+
+    if client is None:
+        return json.dumps({
+            "innovation": 70,
+            "feasibility": 70,
+            "market": 70,
+            "overall": 70,
+            "strengths": [
+                "Clear project concept",
+                "Addresses a real-world problem",
+                "Has potential for further development"
+            ],
+            "weaknesses": [
+                "More detailed implementation is needed",
+                "Scalability needs further planning",
+                "User validation should be strengthened"
+            ],
+            "suggestions": [
+                "Add a working prototype",
+                "Validate the solution with target users",
+                "Prepare a clear scalability plan"
+            ],
+            "judge_feedback": "GROQ API key is not configured."
+        })
 
     try:
 
@@ -190,6 +240,9 @@ Week 7:
 Week 8:
 """
 
+    if client is None:
+        return "Roadmap Error: GROQ_API_KEY is not configured."
+
     try:
 
         response = client.chat.completions.create(
@@ -232,6 +285,9 @@ Generate a professional report containing:
 6. Final Verdict
 """
 
+    if client is None:
+        return "Report Error: GROQ_API_KEY is not configured."
+
     try:
 
         response = client.chat.completions.create(
@@ -253,6 +309,9 @@ Generate a professional report containing:
 # AI MENTOR
 # -----------------------------
 def get_ai_mentor_response(messages: list):
+
+    if client is None:
+        return "AI Error: GROQ_API_KEY is not configured."
 
     try:
 
