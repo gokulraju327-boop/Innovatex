@@ -10,251 +10,265 @@ def show_dashboard():
         st.warning("⚠️ Please login again.")
         return
 
-    user_id = user["id"]
+    user_id = user.get("id")
+    name = user.get("name", "User")
+    email = user.get("email", "")
 
-    # Get user projects
+    # -------------------------------------------------
+    # DATABASE
+    # -------------------------------------------------
+
     project_count = get_project_count(user_id)
     projects = get_projects(user_id)
 
     latest_score = st.session_state.get("latest_score")
     report_count = st.session_state.get("report_count", 0)
 
-    # Custom CSS
+    # -------------------------------------------------
+    # CUSTOM HERO STYLE
+    # -------------------------------------------------
+
     st.markdown(
         """
-<style>
-.hero {
-    padding: 42px 30px;
-    border-radius: 24px;
-    background: linear-gradient(135deg, #2563EB, #7C3AED);
-    color: white;
-    margin-bottom: 25px;
-}
+        <style>
 
-.hero h1 {
-    font-size: 44px;
-    margin-bottom: 8px;
-}
+        .innovatex-hero {
+            background: linear-gradient(
+                135deg,
+                #2563EB 0%,
+                #3B82F6 50%,
+                #7C3AED 100%
+            );
 
-.hero p {
-    font-size: 17px;
-    margin-bottom: 8px;
-}
+            padding: 36px;
+            border-radius: 24px;
+            margin-bottom: 30px;
 
-.section-title {
-    margin-top: 25px;
-    margin-bottom: 15px;
-}
+            box-shadow:
+                0 10px 30px rgba(37, 99, 235, 0.30);
 
-.feature-card {
-    padding: 22px;
-    border-radius: 18px;
-    background: #F8FAFC;
-    border: 1px solid #E2E8F0;
-    margin-bottom: 15px;
-    min-height: 135px;
-}
+            color: white !important;
+        }
 
-.feature-card h4 {
-    margin-top: 0;
-}
+        .innovatex-hero h1 {
+            color: white !important;
+            font-size: 42px !important;
+            font-weight: 800 !important;
+            margin: 0 0 15px 0 !important;
+        }
 
-.recent-card {
-    padding: 18px;
-    border-radius: 15px;
-    background: #F8FAFC;
-    border-left: 5px solid #2563EB;
-    margin-bottom: 12px;
-}
-</style>
+        .innovatex-hero .welcome {
+            color: white !important;
+            font-size: 20px !important;
+            font-weight: 700 !important;
+            margin: 0 0 6px 0 !important;
+        }
+
+        .innovatex-hero .email {
+            color: #E0E7FF !important;
+            font-size: 15px !important;
+            margin: 0 0 18px 0 !important;
+        }
+
+        .innovatex-hero .tagline {
+            color: white !important;
+            font-size: 17px !important;
+            margin: 0 !important;
+        }
+
+        </style>
         """,
         unsafe_allow_html=True
     )
 
-    # Hero
-    st.markdown(
+    # -------------------------------------------------
+    # BLUE HERO BOX
+    # -------------------------------------------------
+
+    st.html(
         f"""
-<div class="hero">
-<h1>🚀 InnovateX</h1>
+        <div class="innovatex-hero">
 
-<p>
-Welcome back, <b>{user["name"]}</b>! 👋
-</p>
+            <h1>🚀 InnovateX</h1>
 
-<p>
-Turn your ideas into smarter,
-stronger and hackathon-ready projects.
-</p>
-</div>
-        """,
-        unsafe_allow_html=True
+            <p class="welcome">
+                👋 Welcome back, {name}!
+            </p>
+
+            <p class="email">
+                📧 {email}
+            </p>
+
+            <p class="tagline">
+                Turn your ideas into smarter, stronger
+                and hackathon-ready projects.
+            </p>
+
+        </div>
+        """
     )
 
-    # Statistics
-    st.markdown(
-        '<h2 class="section-title">📊 Your Innovation Overview</h2>',
-        unsafe_allow_html=True
-    )
+    # -------------------------------------------------
+    # INNOVATION OVERVIEW
+    # -------------------------------------------------
+
+    st.header("📊 Your Innovation Overview")
 
     c1, c2, c3, c4 = st.columns(4)
 
     with c1:
+
         st.metric(
             "💡 Projects",
             project_count
         )
 
     with c2:
+
         if latest_score is not None:
+
             st.metric(
                 "🏆 Latest Score",
                 f"{latest_score}/100"
             )
+
         else:
+
             st.metric(
                 "🏆 Latest Score",
-                "--"
+                "—"
             )
 
     with c3:
+
         st.metric(
             "🤖 AI Mentor",
             "Ready"
         )
 
     with c4:
+
         st.metric(
             "📄 Reports",
             report_count
         )
 
-    # Quick Actions
-    st.markdown(
-        '<h2 class="section-title">⚡ Quick Actions</h2>',
-        unsafe_allow_html=True
-    )
+    st.divider()
+
+    # -------------------------------------------------
+    # QUICK ACTIONS
+    # -------------------------------------------------
+
+    st.header("⚡ Quick Actions")
 
     q1, q2, q3 = st.columns(3)
 
     with q1:
+
         if st.button(
             "💡 Evaluate New Idea",
             use_container_width=True
         ):
+
             st.session_state["dashboard_action"] = "Idea Evaluation"
             st.rerun()
 
     with q2:
+
         if st.button(
             "🤖 Ask AI Mentor",
             use_container_width=True
         ):
+
             st.session_state["dashboard_action"] = "AI Mentor"
             st.rerun()
 
     with q3:
+
         if st.button(
             "📚 View History",
             use_container_width=True
         ):
+
             st.session_state["dashboard_action"] = "History"
             st.rerun()
 
-    # Features
-    st.markdown(
-        '<h2 class="section-title">✨ InnovateX Features</h2>',
-        unsafe_allow_html=True
-    )
+    st.divider()
+
+    # -------------------------------------------------
+    # FEATURES
+    # -------------------------------------------------
+
+    st.header("✨ InnovateX Features")
 
     col1, col2 = st.columns(2)
 
+    # LEFT COLUMN
     with col1:
 
-        st.markdown(
-            """
-<div class="feature-card">
-<h4>💡 AI Idea Evaluation</h4>
-<p>
-Evaluate your project idea using AI-powered
-innovation, feasibility and market analysis.
-</p>
-</div>
-            """,
-            unsafe_allow_html=True
-        )
+        with st.container(border=True):
 
-        st.markdown(
-            """
-<div class="feature-card">
-<h4>🧩 Innovation Gap Analyzer</h4>
-<p>
-Discover missing features, weaknesses
-and opportunities in your project.
-</p>
-</div>
-            """,
-            unsafe_allow_html=True
-        )
+            st.subheader("💡 AI Idea Evaluation")
 
-        st.markdown(
-            """
-<div class="feature-card">
-<h4>🤖 AI Project Mentor</h4>
-<p>
-Get personalized guidance while
-designing and building your project.
-</p>
-</div>
-            """,
-            unsafe_allow_html=True
-        )
+            st.write(
+                "Evaluate your project idea using AI-powered "
+                "innovation, feasibility and market analysis."
+            )
 
+        with st.container(border=True):
+
+            st.subheader("🧩 Innovation Gap Analyzer")
+
+            st.write(
+                "Discover missing features, weaknesses and "
+                "opportunities in your project."
+            )
+
+        with st.container(border=True):
+
+            st.subheader("🤖 AI Project Mentor")
+
+            st.write(
+                "Get personalized guidance while designing "
+                "and building your project."
+            )
+
+    # RIGHT COLUMN
     with col2:
 
-        st.markdown(
-            """
-<div class="feature-card">
-<h4>🛣️ AI Roadmap Generator</h4>
-<p>
-Generate a structured development
-roadmap based on your project.
-</p>
-</div>
-            """,
-            unsafe_allow_html=True
-        )
+        with st.container(border=True):
 
-        st.markdown(
-            """
-<div class="feature-card">
-<h4>📄 Professional PDF Reports</h4>
-<p>
-Generate professional AI-powered
-project evaluation reports.
-</p>
-</div>
-            """,
-            unsafe_allow_html=True
-        )
+            st.subheader("🛣️ AI Roadmap Generator")
 
-        st.markdown(
-            """
-<div class="feature-card">
-<h4>📚 Project History</h4>
-<p>
-Keep track of your previously
-evaluated projects.
-</p>
-</div>
-            """,
-            unsafe_allow_html=True
-        )
+            st.write(
+                "Generate a structured development roadmap "
+                "based on your project."
+            )
 
-    # Recent Projects
-    st.markdown(
-        '<h2 class="section-title">📌 Recent Projects</h2>',
-        unsafe_allow_html=True
-    )
+        with st.container(border=True):
+
+            st.subheader("📄 Professional PDF Reports")
+
+            st.write(
+                "Generate professional AI-powered project "
+                "evaluation reports."
+            )
+
+        with st.container(border=True):
+
+            st.subheader("📚 Project History")
+
+            st.write(
+                "Keep track of your previously evaluated projects."
+            )
+
+    st.divider()
+
+    # -------------------------------------------------
+    # RECENT PROJECTS
+    # -------------------------------------------------
+
+    st.header("📌 Recent Projects")
 
     if not projects:
 
@@ -269,32 +283,27 @@ evaluated projects.
 
             title, domain, skill, team_size, problem, created_at = project
 
-            st.markdown(
-                f"""
-<div class="recent-card">
-<b>🚀 {title}</b>
+            with st.container(border=True):
 
-<br><br>
+                st.subheader(f"🚀 {title}")
 
-<small>
-📂 Domain: {domain}
-&nbsp; | &nbsp;
-🎯 Skill: {skill}
-&nbsp; | &nbsp;
-👥 Team: {team_size}
-</small>
+                st.write(
+                    f"📂 **Domain:** {domain}"
+                )
 
-<br><br>
+                st.write(
+                    f"🎯 **Skill:** {skill}   |   "
+                    f"👥 **Team:** {team_size}"
+                )
 
-<small>
-🕒 Created: {created_at}
-</small>
-</div>
-                """,
-                unsafe_allow_html=True
-            )
+                st.caption(
+                    f"🕒 Created: {created_at}"
+                )
 
-    # Footer
+    # -------------------------------------------------
+    # FOOTER
+    # -------------------------------------------------
+
     st.divider()
 
     st.caption(
