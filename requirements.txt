@@ -3,3 +3,4 @@ groq
 reportlab
 streamlit-option-menu
 python-dotenv
+supabase

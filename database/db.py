@@ -1,13 +1,23 @@
-import sqlite3
-from pathlib import Path
 import hashlib
+import os
+
+from dotenv import load_dotenv
+from supabase import create_client
 
 
-DB_PATH = Path(__file__).parent / "innovatex.db"
+# Load environment variables
+load_dotenv()
 
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
-def get_connection():
-    return sqlite3.connect(DB_PATH)
+if not SUPABASE_URL or not SUPABASE_KEY:
+    raise RuntimeError("Supabase environment variables are missing.")
+
+supabase = create_client(
+    SUPABASE_URL,
+    SUPABASE_KEY
+)
 
 
 def hash_password(password):
@@ -17,287 +27,193 @@ def hash_password(password):
 
 
 def init_db():
-    conn = get_connection()
-
-    # Users table
-    conn.execute("""
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            email TEXT UNIQUE NOT NULL,
-            password TEXT NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
-
-    # Projects table
-    conn.execute("""
-        CREATE TABLE IF NOT EXISTS projects (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            title TEXT NOT NULL,
-            domain TEXT,
-            description TEXT,
-            team_size INTEGER,
-            duration TEXT,
-            skill TEXT,
-            tech_stack TEXT,
-            target_users TEXT,
-            problem TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
-
-    # Add user_id to old projects table if it does not exist
-    columns = conn.execute(
-        "PRAGMA table_info(projects)"
-    ).fetchall()
-
-    column_names = [column[1] for column in columns]
-
-    if "user_id" not in column_names:
-        conn.execute(
-            "ALTER TABLE projects ADD COLUMN user_id INTEGER"
-        )
-
-    conn.commit()
-    conn.close()
+    """
+    Supabase tables are already created in the Supabase dashboard.
+    Nothing needs to be created locally.
+    """
+    pass
 
 
 def create_user(name, email, password):
-    conn = get_connection()
-
     try:
         hashed_password = hash_password(password)
 
-        conn.execute(
-            """
-            INSERT INTO users (
-                name,
-                email,
-                password
-            )
-            VALUES (?, ?, ?)
-            """,
-            (
-                name,
-                email,
-                hashed_password
-            )
-        )
-
-        conn.commit()
+        supabase.table("users").insert({
+            "name": name,
+            "email": email,
+            "password": hashed_password
+        }).execute()
 
         return True, "Account created successfully."
 
-    except sqlite3.IntegrityError:
-        return False, "Email already registered."
-
     except Exception as e:
-        return False, str(e)
+        error_message = str(e)
 
-    finally:
-        conn.close()
+        if "duplicate key" in error_message.lower() or "23505" in error_message:
+            return False, "Email already registered."
+
+        return False, error_message
 
 
 def authenticate_user(email, password):
-    conn = get_connection()
+    try:
+        hashed_password = hash_password(password)
 
-    hashed_password = hash_password(password)
-
-    cursor = conn.execute(
-        """
-        SELECT id, name, email
-        FROM users
-        WHERE email = ?
-        AND password = ?
-        """,
-        (
-            email,
-            hashed_password
+        response = (
+            supabase
+            .table("users")
+            .select("id, name, email")
+            .eq("email", email)
+            .eq("password", hashed_password)
+            .limit(1)
+            .execute()
         )
-    )
 
-    user = cursor.fetchone()
+        if response.data:
+            user = response.data[0]
 
-    conn.close()
+            return {
+                "id": user["id"],
+                "name": user["name"],
+                "email": user["email"]
+            }
 
-    if user:
-        return {
-            "id": user[0],
-            "name": user[1],
-            "email": user[2]
-        }
+        return None
 
-    return None
+    except Exception as e:
+        print("Authentication Error:", e)
+        return None
 
 
 def save_project(project, user_id=None):
-    conn = get_connection()
+    try:
+        data = {
+            "title": project["title"],
+            "domain": project["domain"],
+            "description": project["description"],
+            "team_size": project["team_size"],
+            "duration": project["duration"],
+            "skill": project["skill"],
+            "tech_stack": project["tech_stack"],
+            "target_users": project["target_users"],
+            "problem": project["problem"],
+            "user_id": user_id
+        }
 
-    conn.execute(
-        """
-        INSERT INTO projects (
-            title,
-            domain,
-            description,
-            team_size,
-            duration,
-            skill,
-            tech_stack,
-            target_users,
-            problem,
-            user_id
-        )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """,
-        (
-            project["title"],
-            project["domain"],
-            project["description"],
-            project["team_size"],
-            project["duration"],
-            project["skill"],
-            ", ".join(project["tech_stack"]),
-            project["target_users"],
-            project["problem"],
-            user_id
-        )
-    )
+        supabase.table("projects").insert(data).execute()
 
-    conn.commit()
-    conn.close()
+        return True
+
+    except Exception as e:
+        print("Save Project Error:", e)
+        return False
 
 
 def get_project_count(user_id=None):
-    conn = get_connection()
-
-    if user_id is None:
-        cursor = conn.execute(
-            "SELECT COUNT(*) FROM projects"
-        )
-    else:
-        cursor = conn.execute(
-            """
-            SELECT COUNT(*)
-            FROM projects
-            WHERE user_id = ?
-            """,
-            (user_id,)
+    try:
+        query = (
+            supabase
+            .table("projects")
+            .select("id", count="exact", head=True)
         )
 
-    count = cursor.fetchone()[0]
+        if user_id is not None:
+            query = query.eq("user_id", user_id)
 
-    conn.close()
+        response = query.execute()
 
-    return count
+        return response.count or 0
+
+    except Exception as e:
+        print("Project Count Error:", e)
+        return 0
 
 
 def get_projects(user_id=None):
-    conn = get_connection()
-
-    if user_id is None:
-        cursor = conn.execute(
-            """
-            SELECT
-                title,
-                domain,
-                skill,
-                team_size,
-                problem,
-                created_at
-            FROM projects
-            ORDER BY id DESC
-            """
-        )
-    else:
-        cursor = conn.execute(
-            """
-            SELECT
-                title,
-                domain,
-                skill,
-                team_size,
-                problem,
-                created_at
-            FROM projects
-            WHERE user_id = ?
-            ORDER BY id DESC
-            """,
-            (user_id,)
+    try:
+        query = (
+            supabase
+            .table("projects")
+            .select(
+                "title, domain, skill, team_size, problem, created_at"
+            )
         )
 
-    projects = cursor.fetchall()
+        if user_id is not None:
+            query = query.eq("user_id", user_id)
 
-    conn.close()
+        response = (
+            query
+            .order("id", desc=True)
+            .execute()
+        )
 
-    return projects
+        projects = []
+
+        for project in response.data:
+            projects.append((
+                project.get("title"),
+                project.get("domain"),
+                project.get("skill"),
+                project.get("team_size"),
+                project.get("problem"),
+                project.get("created_at")
+            ))
+
+        return projects
+
+    except Exception as e:
+        print("Get Projects Error:", e)
+        return []
 
 
 def get_latest_project(user_id=None):
-    conn = get_connection()
-
-    if user_id is None:
-        cursor = conn.execute(
-            """
-            SELECT
-                title,
-                domain,
-                description,
-                team_size,
-                duration,
-                skill,
-                tech_stack,
-                target_users,
-                problem
-            FROM projects
-            ORDER BY id DESC
-            LIMIT 1
-            """
-        )
-    else:
-        cursor = conn.execute(
-            """
-            SELECT
-                title,
-                domain,
-                description,
-                team_size,
-                duration,
-                skill,
-                tech_stack,
-                target_users,
-                problem
-            FROM projects
-            WHERE user_id = ?
-            ORDER BY id DESC
-            LIMIT 1
-            """,
-            (user_id,)
+    try:
+        query = (
+            supabase
+            .table("projects")
+            .select(
+                "title, domain, description, team_size, duration, "
+                "skill, tech_stack, target_users, problem"
+            )
         )
 
-    project = cursor.fetchone()
+        if user_id is not None:
+            query = query.eq("user_id", user_id)
 
-    conn.close()
+        response = (
+            query
+            .order("id", desc=True)
+            .limit(1)
+            .execute()
+        )
 
-    if not project:
+        if not response.data:
+            return None
+
+        project = response.data[0]
+
+        tech_stack = project.get("tech_stack") or ""
+
+        return {
+            "title": project.get("title"),
+            "domain": project.get("domain"),
+            "description": project.get("description"),
+            "team_size": project.get("team_size"),
+            "duration": project.get("duration"),
+            "skill": project.get("skill"),
+            "tech_stack": [
+                item.strip()
+                for item in tech_stack.split(",")
+                if item.strip()
+            ],
+            "target_users": project.get("target_users"),
+            "problem": project.get("problem")
+        }
+
+    except Exception as e:
+        print("Latest Project Error:", e)
         return None
 
-    return {
-        "title": project[0],
-        "domain": project[1],
-        "description": project[2],
-        "team_size": project[3],
-        "duration": project[4],
-        "skill": project[5],
-        "tech_stack": [
-            item.strip()
-            for item in project[6].split(",")
-            if item.strip()
-        ] if project[6] else [],
-        "target_users": project[7],
-        "problem": project[8]
-    }
 
-
-# Initialize database
 init_db()

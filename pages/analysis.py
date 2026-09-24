@@ -1,6 +1,8 @@
 import streamlit as st
 from utils.ai_engine import get_ai_scores
 import json
+import re
+import html
 
 
 def show_analysis():
@@ -12,10 +14,6 @@ def show_analysis():
     # ==================================================
 
     project = st.session_state.get("project")
-
-    # --------------------------------------------------
-    # No Active Project
-    # --------------------------------------------------
 
     if project is None:
 
@@ -141,28 +139,24 @@ def show_analysis():
     c1, c2, c3, c4 = st.columns(4)
 
     with c1:
-
         st.metric(
             "💡 Innovation",
             f"{scores['innovation']}/100"
         )
 
     with c2:
-
         st.metric(
             "⚙️ Feasibility",
             f"{scores['feasibility']}/100"
         )
 
     with c3:
-
         st.metric(
             "📈 Market Potential",
             f"{scores['market']}/100"
         )
 
     with c4:
-
         st.metric(
             "🏆 Overall Score",
             f"{scores['overall']}/100"
@@ -176,10 +170,7 @@ def show_analysis():
 
     st.subheader("✅ Strengths")
 
-    for strength in scores.get(
-        "strengths",
-        []
-    ):
+    for strength in scores.get("strengths", []):
 
         st.success(
             f"✔️ {strength}"
@@ -191,10 +182,7 @@ def show_analysis():
 
     st.subheader("⚠️ Weaknesses")
 
-    for weakness in scores.get(
-        "weaknesses",
-        []
-    ):
+    for weakness in scores.get("weaknesses", []):
 
         st.warning(
             f"⚠️ {weakness}"
@@ -208,10 +196,7 @@ def show_analysis():
         "💡 AI Improvement Suggestions"
     )
 
-    for suggestion in scores.get(
-        "suggestions",
-        []
-    ):
+    for suggestion in scores.get("suggestions", []):
 
         st.info(
             f"💡 {suggestion}"
@@ -225,24 +210,29 @@ def show_analysis():
         "👨‍⚖️ Hackathon Judge Feedback"
     )
 
-    st.markdown(
-        f"""
-<div style="
-    background:#F8FAFC;
-    padding:20px;
-    border-radius:15px;
-    border-left:6px solid #2563EB;
-    margin-top:10px;
-">
-<b>AI Judge:</b><br><br>
-{scores.get(
-    "judge_feedback",
-    "No feedback available."
-)}
-</div>
-        """,
-        unsafe_allow_html=True
+    judge_feedback = scores.get(
+        "judge_feedback",
+        "No feedback available."
     )
+
+    # Convert escaped HTML entities if AI returned them
+    judge_feedback = html.unescape(
+        str(judge_feedback)
+    )
+
+    # Remove any HTML tags from AI response
+    judge_feedback = re.sub(
+        r"<[^>]*>",
+        "",
+        judge_feedback
+    ).strip()
+
+    # Native Streamlit container
+    with st.container(border=True):
+
+        st.markdown("### 🤖 AI Judge")
+
+        st.write(judge_feedback)
 
     # ==================================================
     # FOOTER
