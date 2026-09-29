@@ -6,17 +6,13 @@ def show_sidebar():
 
     with st.sidebar:
 
-        # =========================
-        # THEME-AWARE SIDEBAR
-        # =========================
-
         st.markdown(
             """
             <style>
 
-            /* =====================================
-               LIGHT / DARK MODE AUTO SUPPORT
-               ===================================== */
+            /* ==========================================
+               SIDEBAR BASE
+               ========================================== */
 
             section[data-testid="stSidebar"] {
                 background-color: var(--background-color) !important;
@@ -30,10 +26,6 @@ def show_sidebar():
             section[data-testid="stSidebar"] hr {
                 border-color: var(--secondary-background-color);
             }
-
-            /* =====================================
-               LOGO
-               ===================================== */
 
             .innovatex-sidebar-title {
                 text-align: center;
@@ -50,10 +42,6 @@ def show_sidebar():
                 margin-bottom: 20px;
             }
 
-            /* =====================================
-               USER
-               ===================================== */
-
             .innovatex-user-name {
                 color: var(--text-color) !important;
                 font-size: 16px;
@@ -65,41 +53,31 @@ def show_sidebar():
                 font-size: 12px;
             }
 
-            /* =====================================
-               OPTION MENU
-               ===================================== */
-
             section[data-testid="stSidebar"]
             div[data-testid="stVerticalBlock"] {
-
                 --sidebar-bg: var(--background-color);
                 --sidebar-text: var(--text-color);
             }
 
-            /* Normal navigation item */
             section[data-testid="stSidebar"] .nav-link {
                 color: var(--text-color) !important;
                 background-color: transparent !important;
                 border-radius: 10px;
             }
 
-            /* Icons */
             section[data-testid="stSidebar"] .nav-link .icon {
                 color: var(--text-color) !important;
             }
 
-            /* Hover */
             section[data-testid="stSidebar"] .nav-link:hover {
                 background-color: var(--secondary-background-color) !important;
                 color: var(--text-color) !important;
             }
 
-            section[data-testid="stSidebar"]
-            .nav-link:hover .icon {
+            section[data-testid="stSidebar"] .nav-link:hover .icon {
                 color: var(--text-color) !important;
             }
 
-            /* Selected item */
             section[data-testid="stSidebar"] .nav-link-selected {
                 background-color: #EF4444 !important;
                 color: #FFFFFF !important;
@@ -111,10 +89,6 @@ def show_sidebar():
                 color: #FFFFFF !important;
             }
 
-            /* =====================================
-               LOGOUT
-               ===================================== */
-
             section[data-testid="stSidebar"] .stButton button {
                 background-color: var(--secondary-background-color) !important;
                 color: var(--text-color) !important;
@@ -122,8 +96,47 @@ def show_sidebar():
                 border-radius: 10px;
             }
 
-            section[data-testid="stSidebar"] .stButton button:hover {
+            section[data-testid="stSidebar"]
+            .stButton button:hover {
                 opacity: 0.85;
+            }
+
+
+            /* ==========================================
+               MOBILE SIDEBAR
+               PC/DESKTOP LAYOUT IS NOT CHANGED
+               ========================================== */
+
+            @media (max-width: 768px) {
+
+                section[data-testid="stSidebar"] {
+                    width: 100vw !important;
+                    min-width: 100vw !important;
+                    max-width: 100vw !important;
+                }
+
+                section[data-testid="stSidebar"] > div {
+                    width: 100% !important;
+                    max-width: 100% !important;
+                }
+
+                section[data-testid="stSidebar"]
+                div[data-testid="stSidebarContent"] {
+                    width: 100% !important;
+                }
+
+                section[data-testid="stSidebar"] .nav-link {
+                    font-size: 16px !important;
+                    padding: 13px 16px !important;
+                }
+
+                .innovatex-sidebar-title {
+                    font-size: 25px !important;
+                }
+
+                .innovatex-sidebar-subtitle {
+                    font-size: 13px !important;
+                }
             }
 
             </style>
@@ -131,61 +144,56 @@ def show_sidebar():
             unsafe_allow_html=True
         )
 
-        # =========================
-        # LOGO
-        # =========================
+
+        # ==========================================
+        # SIDEBAR HEADER
+        # ==========================================
 
         st.markdown(
-            """
-            <div class="innovatex-sidebar-title">
-                🚀 InnovateX
-            </div>
-            """,
+            '<div class="innovatex-sidebar-title">'
+            '🚀 InnovateX'
+            '</div>',
             unsafe_allow_html=True
         )
 
         st.markdown(
-            """
-            <div class="innovatex-sidebar-subtitle">
-                AI Innovation & Hackathon Mentor
-            </div>
-            """,
+            '<div class="innovatex-sidebar-subtitle">'
+            'AI Innovation & Hackathon Mentor'
+            '</div>',
             unsafe_allow_html=True
         )
 
         st.divider()
 
-        # =========================
+
+        # ==========================================
         # USER INFORMATION
-        # =========================
+        # ==========================================
 
         user = st.session_state.get("user")
 
         if user:
 
             st.markdown(
-                f"""
-                <div class="innovatex-user-name">
-                    👤 {user["name"]}
-                </div>
-                """,
+                f'<div class="innovatex-user-name">'
+                f'👤 {user["name"]}'
+                f'</div>',
                 unsafe_allow_html=True
             )
 
             st.markdown(
-                f"""
-                <div class="innovatex-user-email">
-                    📧 {user["email"]}
-                </div>
-                """,
+                f'<div class="innovatex-user-email">'
+                f'📧 {user["email"]}'
+                f'</div>',
                 unsafe_allow_html=True
             )
 
             st.divider()
 
-        # =========================
+
+        # ==========================================
         # NAVIGATION
-        # =========================
+        # ==========================================
 
         selected = option_menu(
             menu_title=None,
@@ -199,7 +207,7 @@ def show_sidebar():
                 "PDF Report",
                 "History",
                 "Profile",
-                "About",
+                "About"
             ],
 
             icons=[
@@ -211,7 +219,7 @@ def show_sidebar():
                 "file-earmark-pdf-fill",
                 "clock-history",
                 "person-circle",
-                "info-circle-fill",
+                "info-circle-fill"
             ],
 
             default_index=0,
@@ -219,11 +227,11 @@ def show_sidebar():
             styles={
                 "container": {
                     "padding": "0!important",
-                    "background-color": "transparent",
+                    "background-color": "transparent"
                 },
 
                 "icon": {
-                    "font-size": "17px",
+                    "font-size": "17px"
                 },
 
                 "nav-link": {
@@ -231,32 +239,35 @@ def show_sidebar():
                     "text-align": "left",
                     "margin": "4px 0",
                     "padding": "11px 14px",
-                    "border-radius": "10px",
+                    "border-radius": "10px"
                 },
 
                 "nav-link-selected": {
                     "background-color": "#EF4444",
                     "color": "#FFFFFF",
-                    "font-weight": "600",
+                    "font-weight": "600"
                 },
 
                 "nav-link:hover": {
-                    "background-color": "transparent",
+                    "background-color": "transparent"
                 },
             },
         )
 
-        st.divider()
 
-        # =========================
+        # ==========================================
         # LOGOUT
-        # =========================
+        # ==========================================
+
+        st.divider()
 
         if st.button(
             "🚪 Logout",
             use_container_width=True
         ):
+
             st.session_state.clear()
             st.rerun()
+
 
     return selected
