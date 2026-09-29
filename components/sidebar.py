@@ -1,32 +1,30 @@
-from streamlit_option_menu import option_menu
 import streamlit as st
+from streamlit_option_menu import option_menu
 
 
 def show_sidebar():
 
     with st.sidebar:
 
+        # ==================================================
+        # SIDEBAR STYLE
+        # ==================================================
+
         st.markdown(
             """
             <style>
 
-            /* ==========================================
-               SIDEBAR BASE
-               ========================================== */
-
+            /* Sidebar background */
             section[data-testid="stSidebar"] {
                 background-color: var(--background-color) !important;
-                color: var(--text-color) !important;
             }
 
+            /* Sidebar text */
             section[data-testid="stSidebar"] * {
                 color: var(--text-color);
             }
 
-            section[data-testid="stSidebar"] hr {
-                border-color: var(--secondary-background-color);
-            }
-
+            /* Sidebar title */
             .innovatex-sidebar-title {
                 text-align: center;
                 color: var(--text-color) !important;
@@ -35,6 +33,7 @@ def show_sidebar():
                 margin-bottom: 4px;
             }
 
+            /* Sidebar subtitle */
             .innovatex-sidebar-subtitle {
                 text-align: center;
                 color: var(--secondary-text-color) !important;
@@ -42,23 +41,20 @@ def show_sidebar():
                 margin-bottom: 20px;
             }
 
+            /* User name */
             .innovatex-user-name {
                 color: var(--text-color) !important;
                 font-size: 16px;
                 font-weight: 600;
             }
 
+            /* User email */
             .innovatex-user-email {
                 color: var(--secondary-text-color) !important;
                 font-size: 12px;
             }
 
-            section[data-testid="stSidebar"]
-            div[data-testid="stVerticalBlock"] {
-                --sidebar-bg: var(--background-color);
-                --sidebar-text: var(--text-color);
-            }
-
+            /* Sidebar menu */
             section[data-testid="stSidebar"] .nav-link {
                 color: var(--text-color) !important;
                 background-color: transparent !important;
@@ -69,6 +65,7 @@ def show_sidebar():
                 color: var(--text-color) !important;
             }
 
+            /* Hover */
             section[data-testid="stSidebar"] .nav-link:hover {
                 background-color: var(--secondary-background-color) !important;
                 color: var(--text-color) !important;
@@ -78,17 +75,18 @@ def show_sidebar():
                 color: var(--text-color) !important;
             }
 
+            /* Selected menu */
             section[data-testid="stSidebar"] .nav-link-selected {
                 background-color: #EF4444 !important;
                 color: #FFFFFF !important;
                 font-weight: 600;
             }
 
-            section[data-testid="stSidebar"]
-            .nav-link-selected .icon {
+            section[data-testid="stSidebar"] .nav-link-selected .icon {
                 color: #FFFFFF !important;
             }
 
+            /* Logout button */
             section[data-testid="stSidebar"] .stButton button {
                 background-color: var(--secondary-background-color) !important;
                 color: var(--text-color) !important;
@@ -96,47 +94,8 @@ def show_sidebar():
                 border-radius: 10px;
             }
 
-            section[data-testid="stSidebar"]
-            .stButton button:hover {
+            section[data-testid="stSidebar"] .stButton button:hover {
                 opacity: 0.85;
-            }
-
-
-            /* ==========================================
-               MOBILE SIDEBAR
-               PC/DESKTOP LAYOUT IS NOT CHANGED
-               ========================================== */
-
-            @media (max-width: 768px) {
-
-                section[data-testid="stSidebar"] {
-                    width: 100vw !important;
-                    min-width: 100vw !important;
-                    max-width: 100vw !important;
-                }
-
-                section[data-testid="stSidebar"] > div {
-                    width: 100% !important;
-                    max-width: 100% !important;
-                }
-
-                section[data-testid="stSidebar"]
-                div[data-testid="stSidebarContent"] {
-                    width: 100% !important;
-                }
-
-                section[data-testid="stSidebar"] .nav-link {
-                    font-size: 16px !important;
-                    padding: 13px 16px !important;
-                }
-
-                .innovatex-sidebar-title {
-                    font-size: 25px !important;
-                }
-
-                .innovatex-sidebar-subtitle {
-                    font-size: 13px !important;
-                }
             }
 
             </style>
@@ -144,15 +103,12 @@ def show_sidebar():
             unsafe_allow_html=True
         )
 
-
-        # ==========================================
-        # SIDEBAR HEADER
-        # ==========================================
+        # ==================================================
+        # TITLE
+        # ==================================================
 
         st.markdown(
-            '<div class="innovatex-sidebar-title">'
-            '🚀 InnovateX'
-            '</div>',
+            '<div class="innovatex-sidebar-title">🚀 InnovateX</div>',
             unsafe_allow_html=True
         )
 
@@ -165,10 +121,9 @@ def show_sidebar():
 
         st.divider()
 
-
-        # ==========================================
+        # ==================================================
         # USER INFORMATION
-        # ==========================================
+        # ==================================================
 
         user = st.session_state.get("user")
 
@@ -190,10 +145,9 @@ def show_sidebar():
 
             st.divider()
 
-
-        # ==========================================
-        # NAVIGATION
-        # ==========================================
+        # ==================================================
+        # MENU
+        # ==================================================
 
         selected = option_menu(
             menu_title=None,
@@ -250,14 +204,13 @@ def show_sidebar():
 
                 "nav-link:hover": {
                     "background-color": "transparent"
-                },
-            },
+                }
+            }
         )
 
-
-        # ==========================================
+        # ==================================================
         # LOGOUT
-        # ==========================================
+        # ==================================================
 
         st.divider()
 
@@ -265,9 +218,7 @@ def show_sidebar():
             "🚪 Logout",
             use_container_width=True
         ):
-
             st.session_state.clear()
             st.rerun()
-
 
     return selected
