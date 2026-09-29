@@ -14,19 +14,15 @@ def show_dashboard():
     name = user.get("name", "User")
     email = user.get("email", "")
 
-    # -------------------------------------------------
-    # DATABASE
-    # -------------------------------------------------
-
     project_count = get_project_count(user_id)
     projects = get_projects(user_id)
 
     latest_score = st.session_state.get("latest_score")
     report_count = st.session_state.get("report_count", 0)
 
-    # -------------------------------------------------
-    # CUSTOM HERO STYLE
-    # -------------------------------------------------
+    # ==================================================
+    # RESPONSIVE MOBILE + DESKTOP CSS
+    # ==================================================
 
     st.markdown(
         """
@@ -68,12 +64,74 @@ def show_dashboard():
             color: #E0E7FF !important;
             font-size: 15px !important;
             margin: 0 0 18px 0 !important;
+            word-break: break-word;
         }
 
         .innovatex-hero .tagline {
             color: white !important;
             font-size: 17px !important;
             margin: 0 !important;
+            line-height: 1.5 !important;
+        }
+
+
+        /* ==============================================
+           MOBILE RESPONSIVE
+           ============================================== */
+
+        @media (max-width: 768px) {
+
+            .innovatex-hero {
+                padding: 22px !important;
+                border-radius: 18px !important;
+                margin-bottom: 20px !important;
+            }
+
+            .innovatex-hero h1 {
+                font-size: 30px !important;
+                margin-bottom: 10px !important;
+            }
+
+            .innovatex-hero .welcome {
+                font-size: 17px !important;
+                margin-bottom: 5px !important;
+            }
+
+            .innovatex-hero .email {
+                font-size: 13px !important;
+                margin-bottom: 12px !important;
+                word-break: break-all !important;
+            }
+
+            .innovatex-hero .tagline {
+                font-size: 14px !important;
+                line-height: 1.45 !important;
+            }
+
+            h1 {
+                font-size: 28px !important;
+            }
+
+            h2 {
+                font-size: 24px !important;
+            }
+
+            h3 {
+                font-size: 20px !important;
+            }
+
+            .stMetric {
+                padding: 8px !important;
+            }
+
+            .stMetric label {
+                font-size: 13px !important;
+            }
+
+            .stMetric [data-testid="stMetricValue"] {
+                font-size: 22px !important;
+            }
+
         }
 
         </style>
@@ -81,9 +139,10 @@ def show_dashboard():
         unsafe_allow_html=True
     )
 
-    # -------------------------------------------------
-    # BLUE HERO BOX
-    # -------------------------------------------------
+
+    # ==================================================
+    # HERO SECTION
+    # ==================================================
 
     st.html(
         f"""
@@ -100,24 +159,24 @@ def show_dashboard():
             </p>
 
             <p class="tagline">
-                Turn your ideas into smarter, stronger
-                and hackathon-ready projects.
+                Turn your ideas into smarter, stronger and
+                hackathon-ready projects.
             </p>
 
         </div>
         """
     )
 
-    # -------------------------------------------------
+
+    # ==================================================
     # INNOVATION OVERVIEW
-    # -------------------------------------------------
+    # ==================================================
 
     st.header("📊 Your Innovation Overview")
 
     c1, c2, c3, c4 = st.columns(4)
 
     with c1:
-
         st.metric(
             "💡 Projects",
             project_count
@@ -153,11 +212,13 @@ def show_dashboard():
             report_count
         )
 
+
     st.divider()
 
-    # -------------------------------------------------
+
+    # ==================================================
     # QUICK ACTIONS
-    # -------------------------------------------------
+    # ==================================================
 
     st.header("⚡ Quick Actions")
 
@@ -170,8 +231,12 @@ def show_dashboard():
             use_container_width=True
         ):
 
-            st.session_state["dashboard_action"] = "Idea Evaluation"
+            st.session_state["dashboard_action"] = (
+                "Idea Evaluation"
+            )
+
             st.rerun()
+
 
     with q2:
 
@@ -180,8 +245,12 @@ def show_dashboard():
             use_container_width=True
         ):
 
-            st.session_state["dashboard_action"] = "AI Mentor"
+            st.session_state["dashboard_action"] = (
+                "AI Mentor"
+            )
+
             st.rerun()
+
 
     with q3:
 
@@ -190,20 +259,24 @@ def show_dashboard():
             use_container_width=True
         ):
 
-            st.session_state["dashboard_action"] = "History"
+            st.session_state["dashboard_action"] = (
+                "History"
+            )
+
             st.rerun()
+
 
     st.divider()
 
-    # -------------------------------------------------
+
+    # ==================================================
     # FEATURES
-    # -------------------------------------------------
+    # ==================================================
 
     st.header("✨ InnovateX Features")
 
     col1, col2 = st.columns(2)
 
-    # LEFT COLUMN
     with col1:
 
         with st.container(border=True):
@@ -211,29 +284,32 @@ def show_dashboard():
             st.subheader("💡 AI Idea Evaluation")
 
             st.write(
-                "Evaluate your project idea using AI-powered "
-                "innovation, feasibility and market analysis."
+                "Evaluate your project idea using "
+                "AI-powered innovation, feasibility "
+                "and market analysis."
             )
+
 
         with st.container(border=True):
 
             st.subheader("🧩 Innovation Gap Analyzer")
 
             st.write(
-                "Discover missing features, weaknesses and "
-                "opportunities in your project."
+                "Discover missing features, weaknesses "
+                "and opportunities in your project."
             )
+
 
         with st.container(border=True):
 
             st.subheader("🤖 AI Project Mentor")
 
             st.write(
-                "Get personalized guidance while designing "
-                "and building your project."
+                "Get personalized guidance while "
+                "designing and building your project."
             )
 
-    # RIGHT COLUMN
+
     with col2:
 
         with st.container(border=True):
@@ -241,51 +317,67 @@ def show_dashboard():
             st.subheader("🛣️ AI Roadmap Generator")
 
             st.write(
-                "Generate a structured development roadmap "
-                "based on your project."
+                "Generate a structured development "
+                "roadmap based on your project."
             )
+
 
         with st.container(border=True):
 
             st.subheader("📄 Professional PDF Reports")
 
             st.write(
-                "Generate professional AI-powered project "
-                "evaluation reports."
+                "Generate professional AI-powered "
+                "project evaluation reports."
             )
+
 
         with st.container(border=True):
 
             st.subheader("📚 Project History")
 
             st.write(
-                "Keep track of your previously evaluated projects."
+                "Keep track of your previously "
+                "evaluated projects."
             )
+
 
     st.divider()
 
-    # -------------------------------------------------
+
+    # ==================================================
     # RECENT PROJECTS
-    # -------------------------------------------------
+    # ==================================================
 
     st.header("📌 Recent Projects")
+
 
     if not projects:
 
         st.info(
             "No projects evaluated yet. "
-            "Start your first project from 💡 Idea Evaluation."
+            "Start your first project from "
+            "💡 Idea Evaluation."
         )
 
     else:
 
         for project in projects[:5]:
 
-            title, domain, skill, team_size, problem, created_at = project
+            (
+                title,
+                domain,
+                skill,
+                team_size,
+                problem,
+                created_at
+            ) = project
 
             with st.container(border=True):
 
-                st.subheader(f"🚀 {title}")
+                st.subheader(
+                    f"🚀 {title}"
+                )
 
                 st.write(
                     f"📂 **Domain:** {domain}"
@@ -300,11 +392,9 @@ def show_dashboard():
                     f"🕒 Created: {created_at}"
                 )
 
-    # -------------------------------------------------
-    # FOOTER
-    # -------------------------------------------------
 
     st.divider()
+
 
     st.caption(
         "🚀 InnovateX — AI Innovation & Hackathon Mentor"
